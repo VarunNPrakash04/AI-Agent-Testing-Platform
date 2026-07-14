@@ -1,0 +1,35 @@
+# Generic AI Testing Platform — Default Configuration
+# ====================================================
+# This file provides platform-wide defaults. These values are overridden
+# by environment variables and .env file settings.
+
+app:
+  name: "Generic AI Testing Platform"
+  version: "0.1.0"
+  environment: "development"
+
+server:
+  host: "::"
+  port: 8000
+  reload: true
+
+database:
+  url: "sqlite:///data/platform.db"
+
+execution:
+  default_timeout_seconds: 30
+  max_retries: 0
+  parallel: false
+
+reporting:
+  output_dir: "reports"
+  default_format: "html"
+
+observability:
+  langfuse:
+    enabled: false
+    host: "https://cloud.langfuse.com"
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"

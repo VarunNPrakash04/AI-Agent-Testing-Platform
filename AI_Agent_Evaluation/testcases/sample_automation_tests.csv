@@ -1,0 +1,3 @@
+test_id,input,expected_output,context,ground_truth,tags
+TC_AUTO_001,"{""test_file_path"": ""/tests/suite_a.xlsx""}",,"[""Ensure file exists""]",,smoke
+TC_AUTO_002,"{""test_file_path"": ""/tests/suite_b.xlsx"", ""sheet_name"": ""Regression""}",,,,regression

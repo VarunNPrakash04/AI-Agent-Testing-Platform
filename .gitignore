@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual Environment
+venv/
+.venv/
+env/
+vevn/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+
+# Database
+data/*.db
+data/*.sqlite
+AI_Agent_Evaluation/data/*.db
+AI_Agent_Evaluation/data/*.sqlite
+
+# Generated Reports
+reports/*.html
+reports/*.pdf
+AI_Agent_Evaluation/reports/*.html
+AI_Agent_Evaluation/reports/*.pdf
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+htmlcov/
+.coverage
+AI_Agent_Evaluation/.pytest_cache/
+AI_Agent_Evaluation/htmlcov/
+AI_Agent_Evaluation/.coverage
+AI_Agent_Evaluation/.deepeval/
+.deepeval/

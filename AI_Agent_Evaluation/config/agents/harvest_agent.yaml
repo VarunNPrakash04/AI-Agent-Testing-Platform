@@ -1,0 +1,55 @@
+# Sample Agent Configuration — Harvesting Agent
+# ================================================
+# This file demonstrates how to register a Harvesting Agent
+# that reads Power BI/Tableau metadata and produces harvested metrics.
+#
+# Usage: This is a reference file. Agents are registered via the API
+# or Streamlit UI, but these files serve as documentation and can be
+# used for bulk registration in future milestones.
+
+agent:
+  name: "Harvesting Agent"
+  description: "Reads Power BI/Tableau metadata and produces harvested metrics."
+  type: "harvesting"
+
+connector:
+  type: "rest_api"
+  endpoint: "http://localhost:9001/api/v1/harvest"
+  auth:
+    type: "bearer"
+    token: "env:HARVEST_AGENT_TOKEN"
+
+schema:
+  input:
+    type: "object"
+    properties:
+      datasource_id:
+        type: "string"
+        description: "ID of the Power BI / Tableau data source"
+      metadata_type:
+        type: "string"
+        enum: ["powerbi", "tableau"]
+    required:
+      - "datasource_id"
+      - "metadata_type"
+  output:
+    type: "object"
+    properties:
+      metrics:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            metric_name:
+              type: "string"
+            formula:
+              type: "string"
+            owner:
+              type: "string"
+
+capabilities:
+  supports_rag: false
+  supports_tool_calling: false
+
+settings:
+  timeout_seconds: 60

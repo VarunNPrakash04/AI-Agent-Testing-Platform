@@ -1,0 +1,29 @@
+{
+    "test_cases": [
+        {
+            "test_id": "TC_HARVEST_001",
+            "input": {
+                "datasource_id": "pb_123",
+                "metadata_type": "powerbi"
+            },
+            "expected_output": {
+                "metrics": [
+                    {
+                        "metric_name": "Total Sales",
+                        "formula": "SUM(Sales)",
+                        "owner": "Finance"
+                    }
+                ]
+            },
+            "tags": ["smoke", "harvesting"]
+        },
+        {
+            "test_id": "TC_HARVEST_002",
+            "input": {
+                "datasource_id": "tab_456",
+                "metadata_type": "tableau"
+            },
+            "tags": ["regression"]
+        }
+    ]
+}

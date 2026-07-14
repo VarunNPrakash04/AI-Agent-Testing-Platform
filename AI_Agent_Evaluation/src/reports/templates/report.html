@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Execution Report - {{ result.run_id[:8] }}</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d2e;
+            --surface-alt: #232740;
+            --border: #2e3348;
+            --text: #e4e6f0;
+            --text-dim: #8b8fa8;
+            --accent: #6c63ff;
+            --accent-glow: rgba(108, 99, 255, 0.25);
+            --green: #34d399;
+            --green-bg: rgba(52, 211, 153, 0.12);
+            --red: #f87171;
+            --red-bg: rgba(248, 113, 113, 0.12);
+            --yellow: #fbbf24;
+            --yellow-bg: rgba(251, 191, 36, 0.12);
+            --blue: #60a5fa;
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        /* Header */
+        .report-header {
+            background: linear-gradient(135deg, var(--surface) 0%, var(--surface-alt) 100%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .report-header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        .report-header .subtitle {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        /* Metric Cards */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .metric-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            text-align: center;
+        }
+        .metric-card .label {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+        .metric-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .metric-card .value.score { color: var(--accent); }
+        .metric-card .value.pass { color: var(--green); }
+        .metric-card .value.fail { color: var(--red); }
+        .metric-card .value.warn { color: var(--yellow); }
+
+        /* Section */
+        .section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .section h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        th {
+            background: var(--surface-alt);
+            color: var(--text-dim);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--surface-alt); }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.65rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-pass { background: var(--green-bg); color: var(--green); }
+        .badge-fail { background: var(--red-bg); color: var(--red); }
+        .badge-warn { background: var(--yellow-bg); color: var(--yellow); }
+
+        /* Evaluator Scores */
+        .eval-list { list-style: none; padding: 0; }
+        .eval-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.35rem 0;
+            border-bottom: 1px dashed var(--border);
+            font-size: 0.85rem;
+        }
+        .eval-list li:last-child { border-bottom: none; }
+        .eval-name { color: var(--text-dim); }
+        .eval-score { font-weight: 600; }
+
+        /* Score Bar */
+        .score-bar-container {
+            width: 80px;
+            height: 6px;
+            background: var(--surface-alt);
+            border-radius: 3px;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+        .score-bar {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        .score-bar.high { background: var(--green); }
+        .score-bar.mid { background: var(--yellow); }
+        .score-bar.low { background: var(--red); }
+
+        /* Detail card for per-test expansion */
+        .test-detail {
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .test-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        .test-detail-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .detail-block {
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+            padding: 0.75rem;
+        }
+        .detail-block .block-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            letter-spacing: 0.5px;
+            margin-bottom: 0.4rem;
+        }
+        .detail-block pre {
+            font-size: 0.8rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: var(--text);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        /* Recommendations */
+        .recommendation {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--surface-alt);
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.5rem;
+        }
+        .recommendation .icon { font-size: 1.2rem; flex-shrink: 0; }
+        .recommendation .text { font-size: 0.9rem; }
+
+        /* Footer */
+        .report-footer {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Header -->
+    <div class="report-header">
+        <h1>🧪 Execution Report</h1>
+        <div class="subtitle">
+            Run ID: <strong>{{ result.run_id }}</strong>
+            &nbsp;|&nbsp;
+            Agent: <strong>{{ result.agent_id[:8] }}…</strong>
+            &nbsp;|&nbsp;
+            Suite: <strong>{{ result.suite_id[:8] }}…</strong>
+        </div>
+    </div>
+
+    <!-- Summary Metrics -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="label">Status</div>
+            <div class="value {% if result.status.value == 'completed' %}pass{% elif result.status.value == 'failed' %}fail{% else %}warn{% endif %}">
+                {{ result.status.value | upper }}
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="label">Overall Score</div>
+            <div class="value score">{{ "%.1f"|format(result.overall_score * 100) }}%</div>
+        </div>
+        <div class="metric-card">
+            <div class="label">Total Tests</div>
+            <div class="value">{{ result.total_tests }}</div>
+        </div>
+        <div class="metric-card">
+            <div class="label">Passed</div>
+            <div class="value pass">{{ result.passed_tests }}</div>
+        </div>
+        <div class="metric-card">
+            <div class="label">Failed</div>
+            <div class="value {% if result.failed_tests > 0 %}fail{% else %}pass{% endif %}">{{ result.failed_tests }}</div>
+        </div>
+        <div class="metric-card">
+            <div class="label">Duration</div>
+            <div class="value" style="font-size:1.4rem;">
+                {% if result.started_at and result.completed_at %}
+                    {{ ((result.completed_at - result.started_at).total_seconds())|round(1) }}s
+                {% else %}
+                    —
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Evaluator Score Summary Table -->
+    {% set ns = namespace(evaluator_totals={}) %}
+    {% for tr in result.test_results %}
+        {% for er in tr.evaluation_results %}
+            {% if er.evaluator_name in ns.evaluator_totals %}
+                {% set _ = ns.evaluator_totals.update({er.evaluator_name: {'sum': ns.evaluator_totals[er.evaluator_name]['sum'] + er.score, 'count': ns.evaluator_totals[er.evaluator_name]['count'] + 1, 'pass': ns.evaluator_totals[er.evaluator_name]['pass'] + (1 if er.passed else 0)}}) %}
+            {% else %}
+                {% set _ = ns.evaluator_totals.update({er.evaluator_name: {'sum': er.score, 'count': 1, 'pass': 1 if er.passed else 0}}) %}
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+
+    {% if ns.evaluator_totals %}
+    <div class="section">
+        <h2>📊 Evaluator Score Summary</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Evaluator</th>
+                    <th>Avg Score</th>
+                    <th>Pass Rate</th>
+                    <th>Visual</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for name, data in ns.evaluator_totals.items() %}
+                {% set avg = data['sum'] / data['count'] %}
+                {% set pass_rate = data['pass'] / data['count'] * 100 %}
+                <tr>
+                    <td>{{ name }}</td>
+                    <td><strong>{{ "%.2f"|format(avg) }}</strong></td>
+                    <td>{{ "%.0f"|format(pass_rate) }}% ({{ data['pass'] }}/{{ data['count'] }})</td>
+                    <td>
+                        <div class="score-bar-container">
+                            <div class="score-bar {% if avg >= 0.8 %}high{% elif avg >= 0.5 %}mid{% else %}low{% endif %}"
+                                 style="width: {{ (avg * 100)|round }}%"></div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Per-Test Results -->
+    <div class="section">
+        <h2>🧾 Per-Test Results</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Test ID</th>
+                    <th>Result</th>
+                    <th>Latency</th>
+                    <th>Evaluations</th>
+                    <th>Failure Reason</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tr in result.test_results %}
+                <tr>
+                    <td><strong>{{ tr.test_case.test_id }}</strong></td>
+                    <td>
+                        <span class="badge {% if tr.overall_passed %}badge-pass{% else %}badge-fail{% endif %}">
+                            {{ 'PASS' if tr.overall_passed else 'FAIL' }}
+                        </span>
+                    </td>
+                    <td>{{ "%.0f"|format(tr.execution_time_ms) }} ms</td>
+                    <td>
+                        <ul class="eval-list">
+                            {% for er in tr.evaluation_results %}
+                            <li>
+                                <span class="eval-name">{{ er.evaluator_name }}</span>
+                                <span class="eval-score {% if er.passed %}badge-pass{% else %}badge-fail{% endif %}" style="padding: 0.1rem 0.4rem; border-radius: 4px;">
+                                    {{ "%.2f"|format(er.score) }}
+                                </span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td>
+                        {% if not tr.overall_passed %}
+                            {% for er in tr.evaluation_results if not er.passed %}
+                                <div style="font-size: 0.8rem; color: var(--red); margin-bottom: 0.25rem;">
+                                    <strong>{{ er.evaluator_name }}:</strong> {{ er.explanation }}
+                                </div>
+                            {% endfor %}
+                            {% if tr.agent_output.error %}
+                                <div style="font-size: 0.8rem; color: var(--red);">
+                                    <strong>Agent Error:</strong> {{ tr.agent_output.error }}
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <span style="color: var(--text-dim);">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Detailed IO per Test -->
+    <div class="section">
+        <h2>🔍 Detailed Test Case I/O</h2>
+        {% for tr in result.test_results %}
+        <div class="test-detail">
+            <div class="test-detail-header">
+                <h3>{{ tr.test_case.test_id }}</h3>
+                <span class="badge {% if tr.overall_passed %}badge-pass{% else %}badge-fail{% endif %}">
+                    {{ 'PASS' if tr.overall_passed else 'FAIL' }}
+                </span>
+            </div>
+            <div class="detail-grid">
+                <div class="detail-block">
+                    <div class="block-label">Input</div>
+                    <pre>{{ tr.test_case.input | tojson(indent=2) }}</pre>
+                </div>
+                <div class="detail-block">
+                    <div class="block-label">Agent Output</div>
+                    <pre>{% if tr.agent_output.output is mapping %}{{ tr.agent_output.output | tojson(indent=2) }}{% else %}{{ tr.agent_output.output }}{% endif %}</pre>
+                </div>
+                {% if tr.test_case.expected_output %}
+                <div class="detail-block">
+                    <div class="block-label">Expected Output</div>
+                    <pre>{{ tr.test_case.expected_output | tojson(indent=2) }}</pre>
+                </div>
+                {% endif %}
+                <div class="detail-block">
+                    <div class="block-label">Evaluation Details</div>
+                    <pre>{% for er in tr.evaluation_results %}{{ er.evaluator_name }}: {{ er.explanation }}
+{% endfor %}</pre>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Recommendations -->
+    <div class="section">
+        <h2>💡 Recommendations</h2>
+        {% if result.failed_tests == 0 %}
+        <div class="recommendation">
+            <span class="icon">✅</span>
+            <span class="text">All tests passed! Consider adding more edge-case test scenarios to improve coverage.</span>
+        </div>
+        {% else %}
+
+            {% set fail_pct = (result.failed_tests / result.total_tests * 100) if result.total_tests > 0 else 0 %}
+
+            {% if fail_pct > 50 %}
+            <div class="recommendation">
+                <span class="icon">🚨</span>
+                <span class="text"><strong>Critical:</strong> Over 50% of tests are failing ({{ "%.0f"|format(fail_pct) }}%). Investigate the agent's core logic and connector configuration before further testing.</span>
+            </div>
+            {% endif %}
+
+            {% for name, data in ns.evaluator_totals.items() %}
+                {% set avg = data['sum'] / data['count'] %}
+                {% if avg < 0.5 %}
+                <div class="recommendation">
+                    <span class="icon">⚠️</span>
+                    <span class="text"><strong>{{ name }}:</strong> Average score is {{ "%.2f"|format(avg) }}. Review failing test cases and consider tuning the agent or adjusting evaluation thresholds.</span>
+                </div>
+                {% elif avg < 0.8 %}
+                <div class="recommendation">
+                    <span class="icon">💬</span>
+                    <span class="text"><strong>{{ name }}:</strong> Average score {{ "%.2f"|format(avg) }} is below 0.80. There's room for improvement—analyze the detailed failure explanations above.</span>
+                </div>
+                {% endif %}
+            {% endfor %}
+
+            {% set has_latency_issues = false %}
+            {% for tr in result.test_results %}
+                {% if tr.execution_time_ms > 5000 %}{% set has_latency_issues = true %}{% endif %}
+            {% endfor %}
+            {% if has_latency_issues %}
+            <div class="recommendation">
+                <span class="icon">⏱️</span>
+                <span class="text"><strong>Latency:</strong> Some test cases took over 5 seconds. Consider optimizing the agent's response pipeline or increasing the latency threshold.</span>
+            </div>
+            {% endif %}
+
+            <div class="recommendation">
+                <span class="icon">📈</span>
+                <span class="text">Run regression tests after making changes to track score improvements over time using the History Comparison feature.</span>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Footer -->
+    <div class="report-footer">
+        Generated by <strong>Generic AI Agent Testing Platform</strong>
+        {% if result.completed_at %} on {{ result.completed_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}{% endif %}
+    </div>
+
+</div>
+</body>
+</html>

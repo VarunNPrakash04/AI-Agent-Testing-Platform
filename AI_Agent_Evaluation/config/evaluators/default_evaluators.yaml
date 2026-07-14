@@ -1,0 +1,69 @@
+# Evaluator Plugin Configuration
+# ================================
+# Defines available evaluators and their default settings.
+# Users select evaluators at run-time; this file provides defaults.
+
+evaluators:
+  # --- LLM-Based Evaluators (Milestone 2+) ---
+  deepeval:
+    enabled: false
+    description: "DeepEval metrics: answer relevancy, correctness, faithfulness, hallucination."
+    category: "llm_based"
+    supported_agent_types: ["*"]
+    default_metrics:
+      - "answer_relevancy"
+      - "correctness"
+      - "faithfulness"
+      - "hallucination"
+    config:
+      model: "gpt-4"
+      threshold: 0.5
+
+  ragas:
+    enabled: false
+    description: "RAGAS metrics for RAG agents: context precision, recall, faithfulness."
+    category: "llm_based"
+    supported_agent_types: ["rag_chatbot"]
+    default_metrics:
+      - "context_precision"
+      - "context_recall"
+      - "faithfulness"
+      - "answer_correctness"
+    config:
+      model: "gpt-4"
+      threshold: 0.5
+
+  # --- Rule-Based Evaluators ---
+  business_rules:
+    enabled: true
+    description: "Custom Python business rule evaluator."
+    category: "rule_based"
+    supported_agent_types: ["*"]
+    config:
+      rules_module: null  # Will load rules from config at runtime
+
+  # --- Schema Evaluators ---
+  json_validator:
+    enabled: true
+    description: "Validates agent response against expected JSON schema."
+    category: "schema"
+    supported_agent_types: ["*"]
+    config: {}
+
+  # --- Performance Evaluators ---
+  latency:
+    enabled: true
+    description: "Measures execution time and checks against threshold."
+    category: "performance"
+    supported_agent_types: ["*"]
+    config:
+      max_latency_ms: 5000
+      warn_latency_ms: 2000
+
+  # --- Security Evaluators (Milestone 3+) ---
+  security:
+    enabled: false
+    description: "Security checks: prompt injection, PII detection."
+    category: "security"
+    supported_agent_types: ["*"]
+    config: {}

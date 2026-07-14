@@ -1,0 +1,51 @@
+# Sample Agent Configuration — Test Automation Agent
+# ====================================================
+# Reads Excel test cases, executes tests, and updates Excel results.
+
+agent:
+  name: "Test Automation Agent"
+  description: "Reads Excel test cases, executes tests, and updates Excel results."
+  type: "test_automation"
+
+connector:
+  type: "rest_api"
+  endpoint: "http://localhost:9002/api/v1/automate"
+  auth:
+    type: "api_key"
+    token: "env:AUTOMATION_AGENT_TOKEN"
+    header_name: "X-API-Key"
+
+schema:
+  input:
+    type: "object"
+    properties:
+      test_file_path:
+        type: "string"
+        description: "Path to the Excel file with test cases"
+      sheet_name:
+        type: "string"
+        description: "Sheet name within the workbook"
+    required:
+      - "test_file_path"
+  output:
+    type: "object"
+    properties:
+      results:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            test_id:
+              type: "string"
+            status:
+              type: "string"
+              enum: ["passed", "failed", "skipped"]
+            details:
+              type: "string"
+
+capabilities:
+  supports_rag: false
+  supports_tool_calling: false
+
+settings:
+  timeout_seconds: 120

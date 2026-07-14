@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Benchmark Studio — AI Agent Testing Platform</title>
+  <meta name="description" content="Upload benchmark question sets, select DeepEval or RAGAS metrics, and run detailed LLM evaluations." />
+  <meta name="theme-color" content="#09090b" id="metaTheme" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ═══════ SIDEBAR ═══════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-mark">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">Benchmark Studio</span>
+        <span class="brand-sub">LLM Evaluation</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-link active" data-page="overview" onclick="navigateTo('overview')">
+        <span class="nav-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
+            <rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
+          </svg>
+        </span>
+        <span>Overview</span>
+      </button>
+
+      <button class="nav-link" data-page="agents" onclick="navigateTo('agents')">
+        <span class="nav-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M12 2v9m-4-3h8M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </span>
+        <span>Agents</span>
+        <span class="nav-pill" id="navAgentCount">0</span>
+      </button>
+
+      <button class="nav-link" data-page="datasets" onclick="navigateTo('datasets')">
+        <span class="nav-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <ellipse cx="12" cy="5" rx="9" ry="3"/>
+            <path d="M3 5v6c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+            <path d="M3 11v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6"/>
+          </svg>
+        </span>
+        <span>Test Scenarios</span>
+        <span class="nav-pill" id="navDsCount">0</span>
+      </button>
+
+      <button class="nav-link" data-page="golden" onclick="navigateTo('golden')">
+        <span class="nav-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </span>
+        <span>Golden Set</span>
+      </button>
+
+      <button class="nav-link" data-page="evaluate" onclick="navigateTo('evaluate')">
+        <span class="nav-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polygon points="10 8 16 12 10 16 10 8"/>
+          </svg>
+        </span>
+        <span>Run Pipeline Test</span>
+      </button>
+
+      <button class="nav-link" data-page="results" onclick="navigateTo('results')">
+        <span class="nav-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+        </span>
+        <span>Results</span>
+        <span class="nav-pill accent" id="navResultsCount">0</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-bot">
+      <div class="sys-status">
+        <span class="status-dot"></span>
+        <span class="status-text">UI Preview Mode</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════ MAIN ═══════ -->
+  <div class="main" id="main">
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="topbar-l">
+        <button class="burger" onclick="toggleSidebar()">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <div class="topbar-trail" id="topbarTrail">
+          <span class="trail-root">Benchmark Studio</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          <span class="trail-current" id="trailCurrent">Overview</span>
+        </div>
+      </div>
+      <div class="topbar-r">
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">
+          <span class="theme-icon-dark">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </span>
+          <span class="theme-icon-light">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </span>
+        </button>
+        <button class="btn-upload" onclick="openUploadModal()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          Upload Test Scenarios
+        </button>
+      </div>
+    </header>
+
+    <!-- Pages wrapper -->
+    <div class="pages" id="pages">
+
+      <!-- ════════════════════ OVERVIEW PAGE ════════════════════ -->
+      <section class="page active" id="page-overview">
+        <div class="page-intro">
+          <h1 class="page-h1">Overview</h1>
+          <p class="page-desc">Your Data Pipeline evaluation workspace at a glance</p>
+        </div>
+
+        <!-- KPIs -->
+        <div class="kpi-strip">
+          <div class="kpi">
+            <div class="kpi-label">Test Scenarios</div>
+            <div class="kpi-num" id="kpiDs">0</div>
+          </div>
+          <div class="kpi-sep"></div>
+          <div class="kpi">
+            <div class="kpi-label">Total Runs</div>
+            <div class="kpi-num" id="kpiRuns">0</div>
+          </div>
+          <div class="kpi-sep"></div>
+          <div class="kpi">
+            <div class="kpi-label">DeepEval Runs</div>
+            <div class="kpi-num" id="kpiDE">0</div>
+          </div>
+          <div class="kpi-sep"></div>
+          <div class="kpi">
+            <div class="kpi-label">RAGAS Runs</div>
+            <div class="kpi-num" id="kpiRG">0</div>
+          </div>
+        </div>
+
+        <!-- Two column -->
+        <div class="ov-grid">
+          <!-- Getting started -->
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">Getting Started</span>
+            </div>
+            <div class="start-steps" id="startSteps">
+              <div class="start-step clickable" onclick="navigateTo('datasets')">
+                <div class="step-no done" id="sn1">1</div>
+                <div class="step-detail">
+                  <div class="step-label">Upload a Question Set</div>
+                  <div class="step-hint">Import your .xlsx benchmark file</div>
+                </div>
+                <div class="step-arrow">→</div>
+              </div>
+              <div class="step-line"></div>
+              <div class="start-step clickable" onclick="navigateTo('evaluate')">
+                <div class="step-no" id="sn2">2</div>
+                <div class="step-detail">
+                  <div class="step-label">Choose Framework</div>
+                  <div class="step-hint">Select DeepEval or RAGAS</div>
+                </div>
+                <div class="step-arrow">→</div>
+              </div>
+              <div class="step-line"></div>
+              <div class="start-step clickable" onclick="navigateTo('evaluate')">
+                <div class="step-no" id="sn3">3</div>
+                <div class="step-detail">
+                  <div class="step-label">Select Metrics &amp; Run</div>
+                  <div class="step-hint">Pick evaluation criteria and start</div>
+                </div>
+                <div class="step-arrow">→</div>
+              </div>
+              <div class="step-line"></div>
+              <div class="start-step clickable" onclick="navigateTo('results')">
+                <div class="step-no" id="sn4">4</div>
+                <div class="step-detail">
+                  <div class="step-label">Review Results</div>
+                  <div class="step-hint">Detailed metric scores &amp; analysis</div>
+                </div>
+                <div class="step-arrow">→</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity -->
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">Recent Activity</span>
+              <button class="link-action" onclick="navigateTo('results')">View all</button>
+            </div>
+            <div id="activityFeed">
+              <div class="no-data">No activity yet — upload a dataset to begin.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════════════════ DATASETS PAGE ════════════════════ -->
+      <section class="page" id="page-datasets">
+        <div class="page-intro">
+          <div>
+            <h1 class="page-h1">Test Scenarios</h1>
+            <p class="page-desc">Manage your benchmark question datasets</p>
+          </div>
+          <button class="btn-primary" onclick="openUploadModal()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Upload Scenarios
+          </button>
+        </div>
+
+        <!-- Drop zone -->
+        <div class="dropzone" id="dropzone" onclick="openUploadModal()">
+          <div class="dz-content">
+            <div class="dz-icon">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </div>
+            <div class="dz-text">Drop your <strong>.xlsx</strong> or <strong>.txt</strong> file here, or <u>click to browse</u></div>
+            <div class="dz-hint">Supports .xlsx, .xls, and .txt formats — max 50 MB</div>
+          </div>
+        </div>
+
+        <!-- Dataset table -->
+        <div class="card no-pad">
+          <div class="card-head padded">
+            <span class="card-title">Uploaded Datasets</span>
+            <div style="display:flex;gap:10px;align-items:center">
+              <div class="search-box">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="dsSearch" placeholder="Search datasets…" oninput="filterDs()" />
+              </div>
+            </div>
+          </div>
+
+          <div class="tbl-wrap">
+            <table class="tbl" id="dsTable">
+              <thead>
+                <tr>
+                  <th class="chk-col"><input type="checkbox" id="chkAll" onchange="toggleAll(this)" /></th>
+                  <th>Dataset Name</th>
+                  <th>Questions</th>
+                  <th>Tags</th>
+                  <th>Uploaded</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="dsBody">
+                <tr class="empty-tr"><td colspan="7">
+                  <div class="no-data-full">
+                    <div class="es-icon">
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </div>
+                    <div class="es-title">No datasets yet</div>
+                    <div class="es-sub">Upload an .xlsx or .txt benchmark file to get started with your first evaluation.</div>
+                    <button class="btn-primary" onclick="openUploadModal()" style="margin-top:4px">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                      Upload Scenarios
+                    </button>
+                  </div>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="tbl-foot padded">
+            <span class="tbl-count" id="dsCount">0 datasets</span>
+            <div class="bulk-bar" id="bulkBar" style="display:none">
+              <button class="btn-ghost-sm" onclick="bulkDel()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                Delete selected
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════════════════ AGENTS PAGE ════════════════════ -->
+      <section class="page" id="page-agents">
+        <div class="page-intro">
+          <div>
+            <h1 class="page-h1">Pipelines & Agents</h1>
+            <p class="page-desc">Manage and register your data pipelines and agents</p>
+          </div>
+          <button class="btn-primary" onclick="openAgentModal()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Register Pipeline/Agent
+          </button>
+        </div>
+
+        <div class="card no-pad">
+          <div class="card-head padded">
+            <span class="card-title">Registered Agents</span>
+          </div>
+
+          <div class="tbl-wrap">
+            <table class="tbl" id="agentTable">
+              <thead>
+                <tr>
+                  <th>Agent Name</th>
+                  <th>Type / Connector</th>
+                  <th>Endpoint / Path</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="agentBody">
+                <tr class="empty-tr"><td colspan="5">
+                  <div class="no-data-full">
+                    <div class="es-icon">
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M12 2v9m-4-3h8M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </div>
+                    <div class="es-title">No agents registered</div>
+                    <div class="es-sub">Register a pipeline or agent to start running automated evaluations against your AI systems.</div>
+                    <button class="btn-primary" onclick="openAgentModal()" style="margin-top:4px">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                      Register Agent
+                    </button>
+                  </div>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════════════════ GOLDEN SET PAGE ════════════════════ -->
+      <section class="page" id="page-golden">
+        <div class="page-intro">
+          <div>
+            <h1 class="page-h1">Generate Mock Data</h1>
+            <p class="page-desc">Create high-quality mock data scenarios automatically using LLMs.</p>
+          </div>
+        </div>
+
+        <div class="card no-pad" style="max-width: 800px">
+          <div class="card-head padded">
+            <span class="card-title">Configuration</span>
+          </div>
+          <div class="m-body" style="padding: 24px;">
+            <div class="cfg-grid">
+              <div class="cfg-field">
+                <label class="cfg-lbl">Provider</label>
+                <select class="cfg-inp" id="goldProvider">
+                  <option value="openai">OpenAI</option>
+                  <option value="anthropic">Anthropic</option>
+                  <option value="google">Google</option>
+                </select>
+              </div>
+              <div class="cfg-field">
+                <label class="cfg-lbl">Model</label>
+                <select class="cfg-inp" id="goldModel">
+                  <option value="gpt-4o">GPT-4o</option>
+                  <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                  <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
+                  <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                </select>
+              </div>
+              <div class="cfg-field full">
+                <label class="cfg-lbl">Source Context (Paste text or documents)</label>
+                <textarea class="cfg-inp cfg-ta" id="goldContext" style="min-height: 120px;" placeholder="Paste the source material here to generate questions from..."></textarea>
+              </div>
+              <div class="cfg-field full">
+                <label class="cfg-lbl">Instructions / Guidelines</label>
+                <textarea class="cfg-inp cfg-ta" id="goldInstructions" placeholder="e.g. Generate 10 difficult reasoning questions with ground truth answers."></textarea>
+              </div>
+              <div class="cfg-field">
+                <label class="cfg-lbl">Number of Questions</label>
+                <input type="number" class="cfg-inp" id="goldNum" value="10" min="1" max="100" />
+              </div>
+            </div>
+          </div>
+          <div class="m-foot" style="background:var(--bg-raised)">
+            <button class="btn-primary" onclick="generateGoldenSet()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              Generate Dataset
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════════════════ EVALUATE PAGE ════════════════════ -->
+      <section class="page" id="page-evaluate">
+        <div class="page-intro">
+          <div>
+            <h1 class="page-h1">Run Pipeline Test</h1>
+            <p class="page-desc">Configure your benchmark pipeline step by step</p>
+          </div>
+        </div>
+
+        <div class="eval-steps">
+
+          <!-- ─── Step 1: Dataset ─── -->
+          <div class="eval-card" id="ec1">
+            <div class="eval-card-side">
+              <div class="step-badge">01</div>
+              <div class="step-vline"></div>
+            </div>
+            <div class="eval-card-body">
+              <div class="eval-card-head">
+                <div>
+                  <div class="eval-card-title">Select Test Scenario</div>
+                  <div class="eval-card-sub">Choose an existing dataset or upload a new one</div>
+                </div>
+              </div>
+              <div class="ds-pick-grid" id="dsPickGrid">
+                <div class="no-data">No datasets found. <button class="inline-link" onclick="navigateTo('datasets')">Upload one →</button></div>
+              </div>
+              <div class="eval-card-footer">
+                <button class="btn-ghost-sm" onclick="openUploadModal()">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Upload new dataset
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ─── Step 2: Framework ─── -->
+          <div class="eval-card" id="ec2">
+            <div class="eval-card-side">
+              <div class="step-badge">02</div>
+              <div class="step-vline"></div>
+            </div>
+            <div class="eval-card-body">
+              <div class="eval-card-head">
+                <div>
+                  <div class="eval-card-title">Select Validation Framework</div>
+                  <div class="eval-card-sub">Choose the validation framework to score your pipeline</div>
+                </div>
+              </div>
+                            <div class="fw-row">
+                <!-- DeepEval -->
+                <button class="fw-btn active" id="fwDeepEval" onclick="pickFramework('deepeval')">
+                  <div class="fw-header">
+                    <div class="fw-badge de">DE</div>
+                    <div class="fw-chk" id="chkDeepEval"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+                  </div>
+                  <div class="fw-title">DeepEval</div>
+                  <div class="fw-body">Unit-test style evaluation for LLM outputs. Ideal for RAG pipelines, conversational AI, and custom evaluation workflows.</div>
+                </button>
+
+                <!-- RAGAS -->
+                <button class="fw-btn" id="fwRagas" onclick="pickFramework('ragas')">
+                  <div class="fw-header">
+                    <div class="fw-badge rg">RG</div>
+                    <div class="fw-chk" id="chkRagas"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+                  </div>
+                  <div class="fw-title">RAGAS</div>
+                  <div class="fw-body">Retrieval-Augmented Generation Assessment. Specialized metrics for measuring RAG pipeline quality end-to-end.</div>
+                </button>
+                
+                <!-- Data Integrity -->
+                <button class="fw-btn" id="fwDataInt" onclick="pickFramework('data_integrity')">
+                  <div class="fw-header">
+                    <div class="fw-badge int">INT</div>
+                    <div class="fw-chk" id="chkDataInt"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+                  </div>
+                  <div class="fw-title">Data Integrity Validation</div>
+                  <div class="fw-body">Validates that data was successfully harvested to its destination. Checks data existence, format, and structure.</div>
+                </button>
+
+                <!-- Data Transformation -->
+                <button class="fw-btn" id="fwDataTrans" onclick="pickFramework('data_transformation')">
+                  <div class="fw-header">
+                    <div class="fw-badge trn">TRN</div>
+                    <div class="fw-chk" id="chkDataTrans"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+                  </div>
+                  <div class="fw-title">Data Transformation Match</div>
+                  <div class="fw-body">Validates that the generated data or canonical output exactly matches the expected ground truth or logic constraints.</div>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ─── Step 3: Metrics ─── -->
+          <div class="eval-card" id="ec3">
+            <div class="eval-card-side">
+              <div class="step-badge">03</div>
+              <div class="step-vline"></div>
+            </div>
+            <div class="eval-card-body">
+              <div class="eval-card-head">
+                <div>
+                  <div class="eval-card-title">Select Validators</div>
+                  <div class="eval-card-sub">Choose which validators to run against your pipeline output</div>
+                </div>
+                <div class="metric-actions">
+                  <button class="btn-ghost-sm" onclick="allMetrics()">Select all</button>
+                  <button class="btn-ghost-sm" onclick="clearMetrics()">Clear all</button>
+                  <span class="selected-count" id="selCount">0 selected</span>
+                </div>
+              </div>
+              <div class="metrics-grid" id="metricsGrid"><!-- JS --></div>
+            </div>
+          </div>
+
+          <!-- ─── Step 4: Configure & Run ─── -->
+          <div class="eval-card last" id="ec4">
+            <div class="eval-card-side">
+              <div class="step-badge">04</div>
+            </div>
+            <div class="eval-card-body">
+              <div class="eval-card-head">
+                <div>
+                  <div class="eval-card-title">Configure &amp; Run</div>
+                  <div class="eval-card-sub">Set run parameters and launch the evaluation</div>
+                </div>
+              </div>
+
+              <div class="cfg-grid">
+                <div class="cfg-field full">
+                  <label class="cfg-lbl">Run Name</label>
+                  <input type="text" class="cfg-inp" id="runName" placeholder="e.g. RAG Pipeline v2 — July 2025" />
+                </div>
+                <div class="cfg-field">
+                  <label class="cfg-lbl">Select Pipeline/Agent</label>
+                  <select class="cfg-inp" id="runModel" onchange="refreshSummary()">
+                    <option value="" disabled selected>Loading agents...</option>
+                  </select>
+                </div>
+                <div class="cfg-field">
+                  <label class="cfg-lbl">Pass Threshold — <span class="thr-val" id="thrVal">0.50</span></label>
+                  <input type="range" class="cfg-range" min="0" max="1" step="0.05" value="0.5"
+                    id="thrSlider" oninput="onThr(this.value)" />
+                </div>
+                <div class="cfg-field full">
+                  <label class="cfg-lbl">Notes (optional)</label>
+                  <textarea class="cfg-inp cfg-ta" id="runNotes" placeholder="Describe this evaluation run…"></textarea>
+                </div>
+              </div>
+
+              <!-- Run summary -->
+              <div class="run-summary">
+                <div class="rs-title">Run Summary</div>
+                <div class="rs-grid">
+                  <div class="rs-item">
+                    <div class="rs-key">Dataset</div>
+                    <div class="rs-val" id="rsDs">— not selected</div>
+                  </div>
+                  <div class="rs-item">
+                    <div class="rs-key">Framework</div>
+                    <div class="rs-val" id="rsFw">DeepEval</div>
+                  </div>
+                  <div class="rs-item">
+                    <div class="rs-key">Metrics</div>
+                    <div class="rs-val" id="rsMet">0 selected</div>
+                  </div>
+                  <div class="rs-item">
+                    <div class="rs-key">Model</div>
+                    <div class="rs-val" id="rsMod">GPT-4o</div>
+                  </div>
+                  <div class="rs-item">
+                    <div class="rs-key">Threshold</div>
+                    <div class="rs-val" id="rsThr">0.50</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="run-foot">
+                <button class="btn-ghost-sm" onclick="resetEval()">Reset</button>
+                <button class="btn-run" id="runBtn" onclick="doRun()">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                  </svg>
+                  Run Pipeline Test
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ════════════════════ RESULTS PAGE ════════════════════ -->
+      <section class="page" id="page-results">
+        <div class="page-intro">
+          <div>
+            <h1 class="page-h1">Pipeline Run Results</h1>
+            <p class="page-desc">Detailed benchmark evaluation scores and analysis</p>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn-ghost" onclick="exportCSV()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export CSV
+            </button>
+          </div>
+        </div>
+        <div id="resultsList">
+          <div class="results-empty">
+            <div class="es-icon" style="width:80px;height:80px;border-radius:24px;margin-bottom:8px">
+              <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <line x1="18" y1="20" x2="18" y2="10"/>
+                <line x1="12" y1="20" x2="12" y2="4"/>
+                <line x1="6" y1="20" x2="6" y2="14"/>
+              </svg>
+            </div>
+            <div class="results-empty-title">No evaluation results yet</div>
+            <div class="results-empty-sub">Run your first pipeline test to see detailed metric scores, charts, and analysis here.</div>
+            <button class="btn-primary" onclick="navigateTo('evaluate')" style="margin-top:8px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Run Your First Test
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       MODALS
+  ═══════════════════════════════════════ -->
+
+  <!-- Register Pipeline/Agent Modal -->
+  <div class="overlay" id="ovAgent">
+    <div class="modal" id="mAgent">
+      <div class="m-head">
+        <div>
+          <div class="m-title">Register AI Agent</div>
+          <div class="m-sub">Configure how the platform connects to your agent</div>
+        </div>
+        <button class="m-close" onclick="closeM('ovAgent')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="m-body">
+        <div class="m-grid">
+          <div class="m-field m-field-full">
+            <label class="m-lbl">Agent Name <span class="req">*</span></label>
+            <input type="text" class="m-inp" id="agentName" placeholder="e.g. Support Bot v1" />
+          </div>
+          <div class="m-field m-field-full">
+            <label class="m-lbl">Description</label>
+            <textarea class="m-inp m-ta" id="agentDesc" placeholder="What this agent does..."></textarea>
+          </div>
+          <div class="m-field">
+            <label class="m-lbl">Agent Type</label>
+            <input type="text" class="m-inp" id="agentType" value="custom" placeholder="custom, assistant, etc." />
+          </div>
+          <div class="m-field">
+            <label class="m-lbl">Connector Type</label>
+            <select class="m-inp" id="connectorType" onchange="toggleConnectorFields()">
+              <option value="rest_api">REST API</option>
+              <option value="python_class">Python Class</option>
+            </select>
+          </div>
+          <div class="m-field m-field-full" id="fieldEndpoint">
+            <label class="m-lbl">REST Endpoint URL</label>
+            <input type="text" class="m-inp" id="agentEndpoint" placeholder="e.g. http://localhost:8000/api/v1/agent/chat" />
+          </div>
+          <div class="m-field m-field-full" id="fieldPython" style="display:none">
+            <label class="m-lbl">Python Class Path</label>
+            <input type="text" class="m-inp" id="pythonClassPath" placeholder="e.g. sample_agents.python_agent.DummyHarvestAgent" />
+          </div>
+          <div class="m-field">
+            <label class="m-lbl">Timeout (seconds)</label>
+            <input type="number" class="m-inp" id="agentTimeout" value="30" min="1" max="300" />
+          </div>
+        </div>
+        <div class="m-hint">Choose REST API for HTTP endpoints or Python Class for locally importable agents. The form will normalize legacy values automatically.</div>
+      </div>
+      <div class="m-foot">
+        <button class="btn-ghost" onclick="closeM('ovAgent')">Cancel</button>
+        <button class="btn-primary" onclick="submitAgent()">Register Pipeline/Agent</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Modal -->
+  <div class="overlay" id="ovUpload">
+    <div class="modal" id="mUpload">
+      <div class="m-head">
+        <div>
+          <div class="m-title">Upload Question Set</div>
+          <div class="m-sub">Import your benchmark scenario file</div>
+        </div>
+        <button class="m-close" onclick="closeM('ovUpload')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="m-body">
+        <div class="m-dz" id="mDz" onclick="document.getElementById('fileIn').click()">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span>Drop file here or <u>click to browse</u></span>
+          <small>.xlsx / .xls / .txt — max 50 MB</small>
+          <input type="file" id="fileIn" accept=".xlsx,.xls,.txt" hidden onchange="onFileSelect(this)" />
+        </div>
+        <div class="m-file-preview" id="mFilePrev" style="display:none">
+          <div class="fp-inner">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div class="fp-info">
+              <span class="fp-name" id="fpName">—</span>
+              <span class="fp-size" id="fpSize">—</span>
+            </div>
+            <button class="m-close" onclick="clearFile()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="m-field">
+          <label class="m-lbl">Dataset Name <span class="req">*</span></label>
+          <input type="text" class="m-inp" id="inpName" placeholder="e.g. RAG QA Benchmark v1" />
+        </div>
+        <div class="m-field">
+          <label class="m-lbl">Tags</label>
+          <input type="text" class="m-inp" id="inpTags" placeholder="rag, qa, production (comma separated)" />
+        </div>
+        <div class="m-field">
+          <label class="m-lbl">Description</label>
+          <textarea class="m-inp m-ta" id="inpDesc" placeholder="Brief description of this dataset…"></textarea>
+        </div>
+        <div class="fmt-hint">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>Expected columns: <code>question</code>, <code>answer</code>, <code>context</code>, <code>ground_truth</code>, <code>retrieval_context</code></span>
+        </div>
+      </div>
+      <div class="m-foot">
+        <button class="btn-ghost" onclick="closeM('ovUpload')">Cancel</button>
+        <button class="btn-primary" onclick="submitUpload()">Upload Test Scenarios</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- View/Edit Modal -->
+  <div class="overlay" id="ovView">
+    <div class="modal modal-wide" id="mView">
+      <div class="m-head">
+        <div>
+          <div class="m-title" id="mViewTitle">Dataset Details</div>
+          <div class="m-sub" id="mViewSub">—</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn-ghost-sm" id="editToggle" onclick="toggleEdit()">Edit</button>
+          <button class="m-close" onclick="closeM('ovView')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="m-body" id="mViewBody" style="gap:20px"></div>
+      <div class="m-foot">
+        <button class="btn-ghost" onclick="closeM('ovView')">Close</button>
+        <button class="btn-primary" id="saveBtn" style="display:none" onclick="saveEdit()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div class="overlay" id="ovDel">
+    <div class="modal modal-sm" id="mDel">
+      <div class="m-head">
+        <div class="m-title">Confirm Delete</div>
+        <button class="m-close" onclick="closeM('ovDel')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="m-body" style="align-items:center;padding:28px 24px;text-align:center">
+        <div class="del-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </div>
+        <p style="font-size:16px;font-weight:600;margin-bottom:8px">Delete this dataset?</p>
+        <p style="color:var(--t-muted);font-size:14px">
+          <strong id="delName"></strong> and all associated runs will be permanently removed. This cannot be undone.
+        </p>
+      </div>
+      <div class="m-foot">
+        <button class="btn-ghost" onclick="closeM('ovDel')">Cancel</button>
+        <button class="btn-danger" onclick="confirmDel()">Delete Dataset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress Modal -->
+  <div class="overlay" id="ovProg">
+    <div class="modal modal-sm">
+      <div class="m-head" style="border:none;padding-bottom:8px">
+        <div class="m-title">Running Benchmark</div>
+      </div>
+      <div class="m-body" style="align-items:center;gap:18px">
+        <div class="prog-ring-wrap">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="32" fill="none" stroke="var(--border-mid)" stroke-width="5"/>
+            <circle cx="40" cy="40" r="32" fill="none" stroke="var(--accent)" stroke-width="5"
+              stroke-linecap="round" stroke-dasharray="201.1" stroke-dashoffset="201.1"
+              id="progArc" style="transform:rotate(-90deg);transform-origin:40px 40px;transition:stroke-dashoffset 0.35s ease"/>
+          </svg>
+          <span class="prog-pct" id="progPct">0%</span>
+        </div>
+        <div class="prog-msg" id="progMsg">Initializing…</div>
+        <div class="prog-bar-wrap">
+          <div class="prog-bar" id="progBar" style="width:0%"></div>
+        </div>
+        <div class="prog-steps-list" id="progStepList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result Detail Modal -->
+  <div class="overlay" id="ovResult">
+    <div class="modal modal-xl">
+      <div class="m-head">
+        <div>
+          <div class="m-title" id="rdTitle">—</div>
+          <div class="m-sub" id="rdSub">—</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn-ghost-sm" onclick="dlResult()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download
+          </button>
+          <button class="m-close" onclick="closeM('ovResult')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="m-body" id="rdBody" style="gap:24px"></div>
+    </div>
+  </div>
+
+  <!-- Toasts -->
+  <div class="toasts" id="toasts"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
